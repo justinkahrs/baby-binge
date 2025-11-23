@@ -12,14 +12,16 @@ import Animated, {
 const { width, height } = Dimensions.get("window");
 
 export default function HeartsAnimation({ count = 16 }: { count?: number }) {
-  const hearts = Array.from({ length: count }).map(() => ({
-    x: Math.random() * width,
-    scale: 0.5 + Math.random() * 1.2,
-    delay: Math.random() * 4000,
-    y: useSharedValue(height + 50),
-  }));
+  const hearts = React.useRef(
+    Array.from({ length: count }).map(() => ({
+      x: Math.random() * width,
+      scale: 0.5 + Math.random() * 1.2,
+      delay: Math.random() * 4000,
+      y: useSharedValue(height + 50),
+    })),
+  ).current;
   useEffect(() => {
-    hearts.forEach((h) => {
+    const timeouts = hearts.map((h) =>
       setTimeout(() => {
         h.y.value = withRepeat(
           withTiming(-120, {
@@ -27,11 +29,14 @@ export default function HeartsAnimation({ count = 16 }: { count?: number }) {
             easing: Easing.linear,
           }),
           -1,
-          false
+          false,
         );
-      }, h.delay);
-    });
-  }, []);
+      }, h.delay),
+    );
+    return () => {
+      timeouts.forEach((id) => clearTimeout(id));
+    };
+  }, [hearts]);
   return (
     <>
       {hearts.map((h, i) => {

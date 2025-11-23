@@ -1,3 +1,8 @@
+import {
+  setAudioModeAsync,
+  useAudioPlayer,
+  useAudioPlayerStatus,
+} from "expo-audio";
 import React, { useEffect, useState } from "react";
 import { StatusBar, StyleSheet, View } from "react-native";
 import Animated, {
@@ -51,12 +56,26 @@ export default function Home() {
     })
   );
   const ActiveAnimation = animations[index];
+  const player = useAudioPlayer(require("../assets/music/no1.mp3"));
+  const audioStatus = useAudioPlayerStatus(player);
   useEffect(() => {
     const intervalId = setInterval(() => {
       setIndex((prev) => (prev + 1) % animations.length);
     }, timeBetweenPages);
     return () => clearInterval(intervalId);
   }, []);
+  useEffect(() => {
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+    });
+  }, []);
+  useEffect(() => {
+    if (audioStatus.isLoaded && !audioStatus.playing) {
+      player.loop = true;
+      player.play();
+    }
+  }, [audioStatus.isLoaded, audioStatus.playing, player]);
   useEffect(() => {
     setIsContentVisible(false);
     setTransition(
