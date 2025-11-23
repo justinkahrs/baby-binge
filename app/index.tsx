@@ -11,9 +11,12 @@ import Animated, {
   SlideOutUp,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
+import Fireworks from "./components/Fireworks";
+import Fruit from "./components/Fruit";
+import Hearts from "./components/Hearts";
+import Smileys from "./components/Smileys";
 import Stars from "./components/Stars";
-// const animations = [Stars, Fruit, Smileys, Hearts, Fireworks];
-const animations = [Stars];
+const animations = [Stars, Fruit, Smileys, Hearts, Fireworks];
 
 const baseDirectionPairs = [
   { entering: SlideInLeft, exiting: SlideOutRight },
