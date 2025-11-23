@@ -33,7 +33,7 @@ export default function Smileys({
     icons.forEach((icon) => {
       setTimeout(() => {
         icon.x.value = withRepeat(
-          withTiming(width + 80, {
+          withTiming(width + 100, {
             duration: icon.durationX,
             easing: Easing.linear,
           }),

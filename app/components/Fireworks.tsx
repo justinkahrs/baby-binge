@@ -116,9 +116,7 @@ const FireWorks = () => (
     <Firework seed={1} startDelay={200} />
     <Firework seed={2} startDelay={450} />
     <Firework seed={4} startDelay={700} />
-    <Firework seed={3} startDelay={920} />
-    <Firework seed={3} startDelay={1120} />
-    <Firework seed={3} startDelay={1320} />
+    <Firework seed={5} startDelay={920} />
   </>
 );
 export default FireWorks;

@@ -12,7 +12,7 @@ import Animated, {
 type StarType = "sparkle" | "sparkles" | "star";
 const { width, height } = Dimensions.get("window");
 const STAR_COUNT = 40;
-const MIN_SIZE = 16;
+const MIN_SIZE = 32;
 const MAX_SIZE = 40;
 const MIN_DISTANCE = Math.min(width, height) * 0.3;
 const MAX_DISTANCE = Math.max(width, height) * 0.7;
