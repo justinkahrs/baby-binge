@@ -1,0 +1,13 @@
+import React from "react";
+import Svg, { Path } from "react-native-svg";
+
+export default function TreeSvg() {
+    return (
+        <Svg width={32} height={100} viewBox="0 0 32 100">
+            <Path
+                fill="#FFF"
+                d="M31.945 74.986L17.37 1.148A1.416 1.416 0 0 0 15.988 0c-.673 0-1.252.48-1.383 1.148L.027 74.986c-.083.42.025.854.292 1.186.268.332.669.523 1.091.523h13.167V100h2.821V76.695h13.165c.422 0 .821-.191 1.09-.523.27-.331.375-.766.292-1.186z"
+            />
+        </Svg>
+    );
+}

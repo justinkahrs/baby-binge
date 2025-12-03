@@ -5,12 +5,12 @@ import {
 } from "expo-audio";
 import React, { useEffect, useState } from "react";
 import {
+  Modal,
   StatusBar,
   StyleSheet,
-  View,
   Text,
   TouchableOpacity,
-  Modal,
+  View,
 } from "react-native";
 import Animated, {
   SlideInDown,
@@ -23,12 +23,17 @@ import Animated, {
   SlideOutUp,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
+import Airplane from "./components/Airplane";
+import Birds from "./components/Birds";
 import Fireworks from "./components/Fireworks";
 import Fruit from "./components/Fruit";
 import Hearts from "./components/Hearts";
 import Smileys from "./components/Smileys";
+import Squares from "./components/Squares";
+import Stairs from "./components/Stairs";
 import Stars from "./components/Stars";
-const animations = [Stars, Fruit, Smileys, Hearts, Fireworks];
+import Truck from "./components/Truck";
+const animations = [Stars, Fireworks, Squares, Fruit, Truck, Stairs, Hearts, Birds, Airplane, Smileys];
 const baseDirectionPairs = [
   { entering: SlideInLeft, exiting: SlideOutRight },
   { entering: SlideInRight, exiting: SlideOutLeft },
@@ -41,11 +46,11 @@ function getRandomDirectionPair(onEntered?: () => void) {
   const enteringBase = pair.entering.duration(300);
   const entering = onEntered
     ? enteringBase.withCallback((finished) => {
-        "worklet";
-        if (finished && onEntered) {
-          scheduleOnRN(onEntered);
-        }
-      })
+      "worklet";
+      if (finished && onEntered) {
+        scheduleOnRN(onEntered);
+      }
+    })
     : enteringBase;
   return {
     entering,
@@ -63,7 +68,7 @@ export default function Home() {
   );
   const [pageChanges, setPageChanges] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [hasShownPaywall, setHasShownPaywall] = useState(false);
+  const [hasShownPaywall, setHasShownPaywall] = useState(true);
   const ActiveAnimation = animations[index];
   const player = useAudioPlayer(require("../assets/music/no1.mp3"));
   const audioStatus = useAudioPlayerStatus(player);
