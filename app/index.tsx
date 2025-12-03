@@ -12,7 +12,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  runOnJS,
   SlideInDown,
   SlideInLeft,
   SlideInRight,
@@ -20,33 +22,35 @@ import Animated, {
   SlideOutDown,
   SlideOutLeft,
   SlideOutRight,
-  SlideOutUp,
+  SlideOutUp
 } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
 import Airplane from "./components/Airplane";
 import Birds from "./components/Birds";
 import Fireworks from "./components/Fireworks";
 import Fruit from "./components/Fruit";
 import Hearts from "./components/Hearts";
 import Pinwheels from "./components/Pinwheels";
+import SettingsMenu from "./components/SettingsMenu";
 import Smileys from "./components/Smileys";
 import Squares from "./components/Squares";
 import Stairs from "./components/Stairs";
 import Stars from "./components/Stars";
 import Truck from "./components/Truck";
-const animations = [
-  Stars,
-  Fireworks,
-  Squares,
-  Fruit,
-  Truck,
-  Stairs,
-  Hearts,
-  Birds,
-  Airplane,
-  Smileys,
-  Pinwheels,
+const animationItems = [
+  { name: "Stars", component: Stars },
+  { name: "Fireworks", component: Fireworks },
+  { name: "Squares", component: Squares },
+  { name: "Fruit", component: Fruit },
+  { name: "Truck", component: Truck },
+  { name: "Stairs", component: Stairs },
+  { name: "Hearts", component: Hearts },
+  { name: "Birds", component: Birds },
+  { name: "Airplane", component: Airplane },
+  { name: "Smileys", component: Smileys },
+  { name: "Pinwheels", component: Pinwheels },
 ];
+
+const musicTracks = [require("../assets/music/no1.mp3")];
 const baseDirectionPairs = [
   { entering: SlideInLeft, exiting: SlideOutRight },
   { entering: SlideInRight, exiting: SlideOutLeft },
@@ -61,7 +65,7 @@ function getRandomDirectionPair(onEntered?: () => void) {
     ? enteringBase.withCallback((finished) => {
       "worklet";
       if (finished && onEntered) {
-        scheduleOnRN(onEntered);
+        runOnJS(onEntered)();
       }
     })
     : enteringBase;
@@ -82,29 +86,64 @@ export default function Home() {
   const [pageChanges, setPageChanges] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
   const [hasShownPaywall, setHasShownPaywall] = useState(true);
-  const ActiveAnimation = animations[index];
-  const player = useAudioPlayer(require("../assets/music/no1.mp3"));
+
+  // Settings State
+  const [showSettings, setShowSettings] = useState(false);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [intervalDuration, setIntervalDuration] = useState(10000);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [animationStates, setAnimationStates] = useState<Record<string, boolean>>(
+    () => {
+      const initialStates: Record<string, boolean> = {};
+      animationItems.forEach((item) => {
+        initialStates[item.name] = true;
+      });
+      return initialStates;
+    }
+  );
+
+  const activeAnimations = animationItems.filter(
+    (item) => animationStates[item.name]
+  );
+
+  // Ensure we don't crash if all animations are disabled
+  const ActiveAnimation = activeAnimations.length > 0
+    ? activeAnimations[index % activeAnimations.length].component
+    : null;
+
+  const player = useAudioPlayer(musicTracks[currentTrackIndex]);
   const audioStatus = useAudioPlayerStatus(player);
+
+  const twoFingerLongPress = Gesture.LongPress()
+    .minDuration(800)
+    .numberOfPointers(2)
+    .onStart(() => {
+      runOnJS(setShowSettings)(true);
+    });
+
   useEffect(() => {
-    if (showPaywall) {
+    if (showPaywall || !animationsEnabled || activeAnimations.length === 0) {
       return;
     }
     const intervalId = setInterval(() => {
-      setIndex((prev) => (prev + 1) % animations.length);
-    }, timeBetweenPages);
+      setIndex((prev) => (prev + 1) % activeAnimations.length);
+    }, intervalDuration);
     return () => clearInterval(intervalId);
-  }, [showPaywall]);
+  }, [showPaywall, animationsEnabled, intervalDuration, activeAnimations.length]);
+
   useEffect(() => {
     setAudioModeAsync({
       playsInSilentMode: true,
       shouldPlayInBackground: true,
     });
   }, []);
+
   useEffect(() => {
     if (!audioStatus.isLoaded) {
       return;
     }
-    if (showPaywall) {
+    if (showPaywall || !isMusicPlaying) {
       if (audioStatus.playing) {
         player.pause();
       }
@@ -114,7 +153,14 @@ export default function Home() {
       player.loop = true;
       player.play();
     }
-  }, [audioStatus.isLoaded, audioStatus.playing, player, showPaywall]);
+  }, [
+    audioStatus.isLoaded,
+    audioStatus.playing,
+    player,
+    showPaywall,
+    isMusicPlaying,
+  ]);
+
   useEffect(() => {
     setIsContentVisible(false);
     setTransition(
@@ -124,46 +170,76 @@ export default function Home() {
     );
     setPageChanges((prev) => prev + 1);
   }, [index]);
+
   useEffect(() => {
-    if (!hasShownPaywall && pageChanges >= animations.length + 1) {
+    if (!hasShownPaywall && pageChanges >= animationItems.length + 1) {
       setShowPaywall(true);
       setHasShownPaywall(true);
     }
   }, [pageChanges, hasShownPaywall]);
+
+  const handleNextTrack = () => {
+    setCurrentTrackIndex((prev) => (prev + 1) % musicTracks.length);
+  };
+
+  const handleToggleAnimation = (name: string, value: boolean) => {
+    setAnimationStates((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
-    <View style={styles.screen}>
-      <StatusBar hidden />
-      <Animated.View
-        key={index}
-        style={styles.animationContainer}
-        entering={transition.entering}
-        exiting={transition.exiting}
-      >
-        {!showPaywall && isContentVisible ? <ActiveAnimation /> : null}
-      </Animated.View>
-      <Modal visible={showPaywall} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Support Baby Binge</Text>
-            <Text style={styles.modalText}>
-              Help keep the animations going by contributing.
-            </Text>
-            <TouchableOpacity
-              style={styles.modalButtonPrimary}
-              onPress={() => setShowPaywall(false)}
-            >
-              <Text style={styles.modalButtonPrimaryText}>Pay now</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButtonSecondary}
-              onPress={() => setShowPaywall(false)}
-            >
-              <Text style={styles.modalButtonSecondaryText}>Maybe later</Text>
-            </TouchableOpacity>
+    <GestureDetector gesture={twoFingerLongPress}>
+      <View style={styles.screen}>
+        <StatusBar hidden />
+        <Animated.View
+          key={index}
+          style={styles.animationContainer}
+          entering={transition.entering}
+          exiting={transition.exiting}
+        >
+          {!showPaywall && isContentVisible && ActiveAnimation ? (
+            <ActiveAnimation />
+          ) : null}
+        </Animated.View>
+        <Modal visible={showPaywall} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Support Baby Binge</Text>
+              <Text style={styles.modalText}>
+                Help keep the animations going by contributing.
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButtonPrimary}
+                onPress={() => setShowPaywall(false)}
+              >
+                <Text style={styles.modalButtonPrimaryText}>Pay now</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButtonSecondary}
+                onPress={() => setShowPaywall(false)}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Maybe later</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+        <SettingsMenu
+          visible={showSettings}
+          onClose={() => setShowSettings(false)}
+          animationsEnabled={animationsEnabled}
+          onToggleAnimations={setAnimationsEnabled}
+          animationStates={animationStates}
+          onToggleAnimation={handleToggleAnimation}
+          intervalDuration={intervalDuration}
+          onIntervalChange={setIntervalDuration}
+          isMusicPlaying={isMusicPlaying}
+          onToggleMusic={() => setIsMusicPlaying((prev) => !prev)}
+          onNextTrack={handleNextTrack}
+        />
+      </View>
+    </GestureDetector>
   );
 }
 const styles = StyleSheet.create({
