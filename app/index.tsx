@@ -28,12 +28,25 @@ import Birds from "./components/Birds";
 import Fireworks from "./components/Fireworks";
 import Fruit from "./components/Fruit";
 import Hearts from "./components/Hearts";
+import Pinwheels from "./components/Pinwheels";
 import Smileys from "./components/Smileys";
 import Squares from "./components/Squares";
 import Stairs from "./components/Stairs";
 import Stars from "./components/Stars";
 import Truck from "./components/Truck";
-const animations = [Stars, Fireworks, Squares, Fruit, Truck, Stairs, Hearts, Birds, Airplane, Smileys];
+const animations = [
+  Stars,
+  Fireworks,
+  Squares,
+  Fruit,
+  Truck,
+  Stairs,
+  Hearts,
+  Birds,
+  Airplane,
+  Smileys,
+  Pinwheels,
+];
 const baseDirectionPairs = [
   { entering: SlideInLeft, exiting: SlideOutRight },
   { entering: SlideInRight, exiting: SlideOutLeft },
