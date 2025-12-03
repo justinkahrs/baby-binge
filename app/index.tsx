@@ -12,9 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
-  runOnJS,
   SlideInDown,
   SlideInLeft,
   SlideInRight,
@@ -24,6 +23,7 @@ import Animated, {
   SlideOutRight,
   SlideOutUp
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import Airplane from "./components/Airplane";
 import Birds from "./components/Birds";
 import Fireworks from "./components/Fireworks";
@@ -65,7 +65,7 @@ function getRandomDirectionPair(onEntered?: () => void) {
     ? enteringBase.withCallback((finished) => {
       "worklet";
       if (finished && onEntered) {
-        runOnJS(onEntered)();
+        scheduleOnRN(onEntered);
       }
     })
     : enteringBase;
@@ -117,9 +117,9 @@ export default function Home() {
 
   const twoFingerLongPress = Gesture.LongPress()
     .minDuration(800)
-    .numberOfPointers(2)
+    .numberOfPointers(3)
     .onStart(() => {
-      runOnJS(setShowSettings)(true);
+      scheduleOnRN(setShowSettings, true);
     });
 
   useEffect(() => {
@@ -190,56 +190,57 @@ export default function Home() {
   };
 
   return (
-    <GestureDetector gesture={twoFingerLongPress}>
-      <View style={styles.screen}>
-        <StatusBar hidden />
-        <Animated.View
-          key={index}
-          style={styles.animationContainer}
-          entering={transition.entering}
-          exiting={transition.exiting}
-        >
-          {!showPaywall && isContentVisible && ActiveAnimation ? (
-            <ActiveAnimation />
-          ) : null}
-        </Animated.View>
-        <Modal visible={showPaywall} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Support Baby Binge</Text>
-              <Text style={styles.modalText}>
-                Help keep the animations going by contributing.
-              </Text>
-              <TouchableOpacity
-                style={styles.modalButtonPrimary}
-                onPress={() => setShowPaywall(false)}
-              >
-                <Text style={styles.modalButtonPrimaryText}>Pay now</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButtonSecondary}
-                onPress={() => setShowPaywall(false)}
-              >
-                <Text style={styles.modalButtonSecondaryText}>Maybe later</Text>
-              </TouchableOpacity>
+    <GestureHandlerRootView>
+      <GestureDetector gesture={twoFingerLongPress}>
+        <View style={styles.screen}>
+          <StatusBar hidden />
+          <Animated.View
+            key={index}
+            style={styles.animationContainer}
+            entering={transition.entering}
+            exiting={transition.exiting}
+          >
+            {!showPaywall && isContentVisible && ActiveAnimation ? (
+              <ActiveAnimation />
+            ) : null}
+          </Animated.View>
+          <Modal visible={showPaywall} transparent animationType="fade">
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Support Baby Binge</Text>
+                <Text style={styles.modalText}>
+                  Help keep the animations going by contributing.
+                </Text>
+                <TouchableOpacity
+                  style={styles.modalButtonPrimary}
+                  onPress={() => setShowPaywall(false)}
+                >
+                  <Text style={styles.modalButtonPrimaryText}>Pay now</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalButtonSecondary}
+                  onPress={() => setShowPaywall(false)}
+                >
+                  <Text style={styles.modalButtonSecondaryText}>Maybe later</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Modal>
-        <SettingsMenu
-          visible={showSettings}
-          onClose={() => setShowSettings(false)}
-          animationsEnabled={animationsEnabled}
-          onToggleAnimations={setAnimationsEnabled}
-          animationStates={animationStates}
-          onToggleAnimation={handleToggleAnimation}
-          intervalDuration={intervalDuration}
-          onIntervalChange={setIntervalDuration}
-          isMusicPlaying={isMusicPlaying}
-          onToggleMusic={() => setIsMusicPlaying((prev) => !prev)}
-          onNextTrack={handleNextTrack}
-        />
-      </View>
-    </GestureDetector>
+          </Modal>
+          <SettingsMenu
+            visible={showSettings}
+            onClose={() => setShowSettings(false)}
+            animationsEnabled={animationsEnabled}
+            onToggleAnimations={setAnimationsEnabled}
+            animationStates={animationStates}
+            onToggleAnimation={handleToggleAnimation}
+            intervalDuration={intervalDuration}
+            onIntervalChange={setIntervalDuration}
+            isMusicPlaying={isMusicPlaying}
+            onToggleMusic={() => setIsMusicPlaying((prev) => !prev)}
+            onNextTrack={handleNextTrack}
+          />
+        </View>
+      </GestureDetector></GestureHandlerRootView>
   );
 }
 const styles = StyleSheet.create({
