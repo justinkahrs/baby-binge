@@ -28,6 +28,7 @@ import Airplane from "./components/Airplane";
 import Birds from "./components/Birds";
 import Fireworks from "./components/Fireworks";
 import Fruit from "./components/Fruit";
+import GestureHintPopup from "./components/GestureHintPopup";
 import Hearts from "./components/Hearts";
 import Pinwheels from "./components/Pinwheels";
 import SettingsMenu from "./components/SettingsMenu";
@@ -74,7 +75,6 @@ function getRandomDirectionPair(onEntered?: () => void) {
     exiting: pair.exiting.duration(300),
   };
 }
-const timeBetweenPages = 10000;
 export default function Home() {
   const [index, setIndex] = useState(0);
   const [isContentVisible, setIsContentVisible] = useState(false);
@@ -103,6 +103,10 @@ export default function Home() {
     }
   );
 
+  // Gesture hint state
+  const [tapCounter, setTapCounter] = useState(0);
+  const [showGestureHint, setShowGestureHint] = useState(false);
+
   const activeAnimations = animationItems.filter(
     (item) => animationStates[item.name]
   );
@@ -115,12 +119,39 @@ export default function Home() {
   const player = useAudioPlayer(musicTracks[currentTrackIndex]);
   const audioStatus = useAudioPlayerStatus(player);
 
-  const twoFingerLongPress = Gesture.LongPress()
+  const threeFingerLongPress = Gesture.LongPress()
     .minDuration(800)
     .numberOfPointers(3)
     .onStart(() => {
       scheduleOnRN(setShowSettings, true);
     });
+
+  const handleTap = () => {
+    setTapCounter((prev) => {
+      const newCount = prev + 1;
+      if (newCount % 3 === 0) {
+        setShowGestureHint(true);
+        return 0; // Reset counter
+      }
+      return newCount;
+    });
+  };
+
+  const singleTap = Gesture.Tap()
+    .numberOfTaps(1)
+    .maxDuration(250)
+    .onEnd(() => {
+      scheduleOnRN(handleTap);
+    });
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .maxDuration(250)
+    .onEnd(() => {
+      scheduleOnRN(handleTap);
+    });
+
+  const combinedGestures = Gesture.Race(threeFingerLongPress, doubleTap, singleTap);
 
   useEffect(() => {
     if (showPaywall || !animationsEnabled || activeAnimations.length === 0) {
@@ -191,7 +222,7 @@ export default function Home() {
 
   return (
     <GestureHandlerRootView>
-      <GestureDetector gesture={twoFingerLongPress}>
+      <GestureDetector gesture={combinedGestures}>
         <View style={styles.screen}>
           <StatusBar hidden />
           <Animated.View
@@ -238,6 +269,10 @@ export default function Home() {
             isMusicPlaying={isMusicPlaying}
             onToggleMusic={() => setIsMusicPlaying((prev) => !prev)}
             onNextTrack={handleNextTrack}
+          />
+          <GestureHintPopup
+            visible={showGestureHint}
+            onDismiss={() => setShowGestureHint(false)}
           />
         </View>
       </GestureDetector></GestureHandlerRootView>

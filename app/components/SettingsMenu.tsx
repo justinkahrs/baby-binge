@@ -116,7 +116,6 @@ export default function SettingsMenu({
                             </View>
                         ))}
                     </ScrollView>
-
                     <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                         <Text style={styles.closeButtonText}>Close</Text>
                     </TouchableOpacity>
