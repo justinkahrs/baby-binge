@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -8,8 +8,6 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
-
-const { width } = Dimensions.get("window");
 
 const PINWHEEL_SIZE = 80;
 const SPACING = 20;
@@ -88,6 +86,8 @@ function GradientPinwheel() {
 }
 
 export default function Pinwheels() {
+    const { width } = useWindowDimensions();
+
     // Calculate how many pinwheels fit in a row
     const itemsPerRow = Math.floor(width / (PINWHEEL_SIZE + SPACING));
     // Create two rows

@@ -1,11 +1,14 @@
 import LottieView from "lottie-react-native";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 
 export default function Squares() {
+    const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
+
     const src = require("../../assets/lotties/loading-squares.json");
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, isLandscape && styles.containerLandscape]}>
             <LottieView
                 source={src}
                 autoPlay
@@ -39,6 +42,10 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        flexDirection: "column",
+    },
+    containerLandscape: {
+        flexDirection: "row",
     },
     lottie: {
         width: 300,

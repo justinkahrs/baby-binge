@@ -1,6 +1,6 @@
 import { Sparkle, Sparkles, Star } from "lucide-react-native";
 import React, { useEffect, useMemo } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -10,12 +10,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 type StarType = "sparkle" | "sparkles" | "star";
-const { width, height } = Dimensions.get("window");
 const STAR_COUNT = 40;
 const MIN_SIZE = 32;
 const MAX_SIZE = 40;
-const MIN_DISTANCE = Math.min(width, height) * 0.3;
-const MAX_DISTANCE = Math.max(width, height) * 0.7;
 const MIN_DURATION = 1600;
 const MAX_DURATION = 2600;
 const STAR_DURATION_MULTIPLIER = 2;
@@ -36,6 +33,7 @@ type AnimatedStarProps = {
   config: StarConfig;
   centerX: number;
   centerY: number;
+  minDistance: number;
 };
 function StarIcon({ type, size }: StarIconProps) {
   if (type === "sparkle") {
@@ -46,7 +44,7 @@ function StarIcon({ type, size }: StarIconProps) {
   }
   return <Star width={size} height={size} color="#fff" />;
 }
-function AnimatedStar({ config, centerX, centerY }: AnimatedStarProps) {
+function AnimatedStar({ config, centerX, centerY, minDistance }: AnimatedStarProps) {
   const progress = useSharedValue(0);
   useEffect(() => {
     progress.value = withDelay(
@@ -62,7 +60,7 @@ function AnimatedStar({ config, centerX, centerY }: AnimatedStarProps) {
     );
   }, [config.delay, config.duration, progress]);
   const animatedStyle = useAnimatedStyle(() => {
-    const jitterRadius = MIN_DISTANCE * 0.15;
+    const jitterRadius = minDistance * 0.15;
     const currentDistance =
       jitterRadius + progress.value * (config.distance - jitterRadius);
     const translateX = Math.cos(config.angle) * currentDistance;
@@ -92,8 +90,13 @@ function AnimatedStar({ config, centerX, centerY }: AnimatedStarProps) {
   );
 }
 export default function Stars() {
+  const { width, height } = useWindowDimensions();
   const centerX = width / 2;
   const centerY = height / 2;
+
+  const MIN_DISTANCE = Math.min(width, height) * 0.3;
+  const MAX_DISTANCE = Math.max(width, height) * 0.7;
+
   const stars = useMemo<StarConfig[]>(() => {
     return Array.from({ length: STAR_COUNT }).map((_, index) => {
       const typeIndex = index % 3;
@@ -117,7 +120,7 @@ export default function Stars() {
         delay,
       };
     });
-  }, []);
+  }, [MIN_DISTANCE, MAX_DISTANCE]);
   return (
     <View style={styles.container}>
       {stars.map((star) => (
@@ -126,6 +129,7 @@ export default function Stars() {
           config={star}
           centerX={centerX}
           centerY={centerY}
+          minDistance={MIN_DISTANCE}
         />
       ))}
     </View>

@@ -1,6 +1,6 @@
 import { Apple, Banana, Cherry } from "lucide-react-native";
 import React, { useEffect, useMemo } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -11,7 +11,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 type FruitType = "apple" | "banana" | "cherry";
-const { width, height } = Dimensions.get("window");
 const FRUIT_COUNT = 24;
 const ICON_SIZE = 40;
 const EDGE_PADDING = 32;
@@ -78,9 +77,8 @@ function BouncingFruitIcon({
   }, [delay, duration, progress]);
   const animatedStyle = useAnimatedStyle(() => {
     const translateY = -amplitude * progress.value;
-    const rotation = `${
-      -rotationRange + progress.value * 2 * rotationRange
-    }deg`;
+    const rotation = `${-rotationRange + progress.value * 2 * rotationRange
+      }deg`;
     return {
       transform: [{ translateY }, { rotate: rotation }],
     };
@@ -101,51 +99,47 @@ function BouncingFruitIcon({
   );
 }
 export default function BouncingFruit() {
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+
   const fruits = useMemo<FruitConfig[]>(() => {
     const availableHeight = Math.max(
       height - EDGE_PADDING * 2 - ICON_SIZE,
       ICON_SIZE,
     );
-    const basePerType = Math.floor(FRUIT_COUNT / 3);
-    const remainder = FRUIT_COUNT % 3;
-    const maxRows = basePerType + (remainder > 0 ? 1 : 0);
-    const verticalSpacing = maxRows > 1 ? availableHeight / (maxRows - 1) : 0;
-    const columnPositions: Record<FruitType, number> = {
-      apple: EDGE_PADDING,
-      banana: width / 2 - ICON_SIZE / 2,
-      cherry: width - EDGE_PADDING - ICON_SIZE,
-    };
+
+    // In landscape: more columns with fewer fruits each
+    // In portrait: 3 columns with more fruits each
+    const numColumns = isLandscape ? 5 : 3;
+    const fruitsPerColumn = Math.ceil(FRUIT_COUNT / numColumns);
+
+    const verticalSpacing = fruitsPerColumn > 1 ? availableHeight / (fruitsPerColumn - 1) : 0;
+
+    // Calculate column positions with consistent spacing
+    const availableWidth = width - EDGE_PADDING * 2 - ICON_SIZE;
+    const horizontalSpacing = numColumns > 1 ? availableWidth / (numColumns - 1) : 0;
+
+    const columnPositions: number[] = [];
+    for (let col = 0; col < numColumns; col++) {
+      columnPositions.push(EDGE_PADDING + col * horizontalSpacing);
+    }
+
     const baseDuration = 1200;
-    const typeDelays: Record<FruitType, number> = {
-      apple: 0,
-      banana: baseDuration / 3,
-      cherry: (2 * baseDuration) / 3,
-    };
-    let appleCount = 0;
-    let bananaCount = 0;
-    let cherryCount = 0;
     const fruitsArray: FruitConfig[] = [];
+    const fruitTypes: FruitType[] = ["apple", "banana", "cherry"];
+
     for (let index = 0; index < FRUIT_COUNT; index += 1) {
-      const typeIndex = index % 3;
-      const type: FruitType =
-        typeIndex === 0 ? "apple" : typeIndex === 1 ? "banana" : "cherry";
-      let rowIndexForType = 0;
-      if (type === "apple") {
-        rowIndexForType = appleCount;
-        appleCount += 1;
-      } else if (type === "banana") {
-        rowIndexForType = bananaCount;
-        bananaCount += 1;
-      } else {
-        rowIndexForType = cherryCount;
-        cherryCount += 1;
-      }
-      const left = columnPositions[type];
-      const top = EDGE_PADDING + rowIndexForType * verticalSpacing;
+      const columnIndex = index % numColumns;
+      const rowIndex = Math.floor(index / numColumns);
+      const type = fruitTypes[index % 3];
+
+      const left = columnPositions[columnIndex];
+      const top = EDGE_PADDING + rowIndex * verticalSpacing;
       const amplitude = 10 + Math.random() * 12;
       const rotationRange = 10 + Math.random() * 6;
       const duration = baseDuration;
-      const delay = typeDelays[type];
+      const delay = (columnIndex * baseDuration) / numColumns;
+
       fruitsArray.push({
         id: `fruit-${index}`,
         type,
@@ -158,7 +152,7 @@ export default function BouncingFruit() {
       });
     }
     return fruitsArray;
-  }, []);
+  }, [width, height, isLandscape]);
   return (
     <View style={styles.container}>
       {fruits.map((fruit) => (

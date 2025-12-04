@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   SlideInDown,
   SlideInLeft,
@@ -221,61 +221,60 @@ export default function Home() {
   };
 
   return (
-    <GestureHandlerRootView>
-      <GestureDetector gesture={combinedGestures}>
-        <View style={styles.screen}>
-          <StatusBar hidden />
-          <Animated.View
-            key={index}
-            style={styles.animationContainer}
-            entering={transition.entering}
-            exiting={transition.exiting}
-          >
-            {!showPaywall && isContentVisible && ActiveAnimation ? (
-              <ActiveAnimation />
-            ) : null}
-          </Animated.View>
-          <Modal visible={showPaywall} transparent animationType="fade">
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Support Baby Binge</Text>
-                <Text style={styles.modalText}>
-                  Help keep the animations going by contributing.
-                </Text>
-                <TouchableOpacity
-                  style={styles.modalButtonPrimary}
-                  onPress={() => setShowPaywall(false)}
-                >
-                  <Text style={styles.modalButtonPrimaryText}>Pay now</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalButtonSecondary}
-                  onPress={() => setShowPaywall(false)}
-                >
-                  <Text style={styles.modalButtonSecondaryText}>Maybe later</Text>
-                </TouchableOpacity>
-              </View>
+    <GestureDetector gesture={combinedGestures}>
+      <View style={styles.screen}>
+        <StatusBar hidden />
+        <Animated.View
+          key={index}
+          style={styles.animationContainer}
+          entering={transition.entering}
+          exiting={transition.exiting}
+        >
+          {!showPaywall && isContentVisible && ActiveAnimation ? (
+            <ActiveAnimation />
+          ) : null}
+        </Animated.View>
+        <Modal visible={showPaywall} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Support Baby Binge</Text>
+              <Text style={styles.modalText}>
+                Help keep the animations going by contributing.
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButtonPrimary}
+                onPress={() => setShowPaywall(false)}
+              >
+                <Text style={styles.modalButtonPrimaryText}>Pay now</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButtonSecondary}
+                onPress={() => setShowPaywall(false)}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Maybe later</Text>
+              </TouchableOpacity>
             </View>
-          </Modal>
-          <SettingsMenu
-            visible={showSettings}
-            onClose={() => setShowSettings(false)}
-            animationsEnabled={animationsEnabled}
-            onToggleAnimations={setAnimationsEnabled}
-            animationStates={animationStates}
-            onToggleAnimation={handleToggleAnimation}
-            intervalDuration={intervalDuration}
-            onIntervalChange={setIntervalDuration}
-            isMusicPlaying={isMusicPlaying}
-            onToggleMusic={() => setIsMusicPlaying((prev) => !prev)}
-            onNextTrack={handleNextTrack}
-          />
-          <GestureHintPopup
-            visible={showGestureHint}
-            onDismiss={() => setShowGestureHint(false)}
-          />
-        </View>
-      </GestureDetector></GestureHandlerRootView>
+          </View>
+        </Modal>
+        <SettingsMenu
+          visible={showSettings}
+          onClose={() => setShowSettings(false)}
+          animationsEnabled={animationsEnabled}
+          onToggleAnimations={setAnimationsEnabled}
+          animationStates={animationStates}
+          onToggleAnimation={handleToggleAnimation}
+          intervalDuration={intervalDuration}
+          onIntervalChange={setIntervalDuration}
+          isMusicPlaying={isMusicPlaying}
+          onToggleMusic={() => setIsMusicPlaying((prev) => !prev)}
+          onNextTrack={handleNextTrack}
+        />
+        <GestureHintPopup
+          visible={showGestureHint}
+          onDismiss={() => setShowGestureHint(false)}
+        />
+      </View>
+    </GestureDetector>
   );
 }
 const styles = StyleSheet.create({

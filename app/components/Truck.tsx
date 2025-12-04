@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -17,6 +17,9 @@ import TruckSvg from "./svgs/TruckSvg";
 import WheelsSvg from "./svgs/WheelsSvg";
 
 export default function Truck() {
+    const { width } = useWindowDimensions();
+    const wrapperWidth = width
+
     // Tree animations - start on screen
     const tree1Position = useSharedValue(500);
     const tree2Position = useSharedValue(300);
@@ -128,7 +131,7 @@ export default function Truck() {
             colors={['#000', '#000']}
             style={styles.background}
         >
-            <View style={styles.loopWrapper}>
+            <View style={[styles.loopWrapper, { width: wrapperWidth }]}>
                 {/* Mountains - multiple for depth */}
                 <Animated.View style={[styles.mountain1, mountainStyle]}>
                     <MountainSvg />
@@ -176,7 +179,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     loopWrapper: {
-        width: 600,
         height: 250,
         overflow: "hidden",
         borderBottomWidth: 3,

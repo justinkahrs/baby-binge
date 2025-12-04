@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, Easing, StyleSheet } from "react-native";
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+import { Animated, Easing, StyleSheet, useWindowDimensions } from "react-native";
 // Firework config
 const NUM_PARTICLES = 24;
-const BURST_RADIUS = Math.min(SCREEN_W, SCREEN_H) * 0.28; // max travel distance
 const PARTICLE_SIZE = 8;
 const FIREWORK_SPEED = 2; // tweak this multiplier to speed up or slow down the burst
 const BURST_DURATION = 1100 * FIREWORK_SPEED; // ms for a single burst
@@ -28,6 +26,9 @@ export type FireworkProps = {
   seed?: number;
 };
 const Firework: React.FC<FireworkProps> = ({ startDelay = 0, seed = 0 }) => {
+  const { width: SCREEN_W, height: SCREEN_H } = useWindowDimensions();
+  const BURST_RADIUS = Math.min(SCREEN_W, SCREEN_H) * 0.28;
+
   const progress = useRef(new Animated.Value(0)).current;
   const [center, setCenter] = useState(() => {
     const margin = Math.min(SCREEN_W, SCREEN_H) * 0.12;

@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react-native";
-import React, { useEffect } from "react";
-import { Dimensions } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { useWindowDimensions } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -9,18 +9,24 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const { width, height } = Dimensions.get("window");
-
 export default function HeartsAnimation({ count = 16 }: { count?: number }) {
-  const hearts = React.useRef(
+  const { width, height } = useWindowDimensions();
+
+  const hearts = useRef(
     Array.from({ length: count }).map(() => ({
-      x: Math.random() * width,
+      x: 0,
       scale: 0.5 + Math.random() * 1.2,
       delay: Math.random() * 4000,
-      y: useSharedValue(height + 50),
+      y: useSharedValue(0),
     })),
   ).current;
   useEffect(() => {
+    // Update positions based on current dimensions
+    hearts.forEach((h) => {
+      h.x = Math.random() * width;
+      h.y.value = height + 50;
+    });
+
     const timeouts = hearts.map((h) =>
       setTimeout(() => {
         h.y.value = withRepeat(
@@ -36,7 +42,7 @@ export default function HeartsAnimation({ count = 16 }: { count?: number }) {
     return () => {
       timeouts.forEach((id) => clearTimeout(id));
     };
-  }, [hearts]);
+  }, [hearts, width, height]);
   return (
     <>
       {hearts.map((h, i) => {

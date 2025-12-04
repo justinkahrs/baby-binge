@@ -1,6 +1,6 @@
 import { Bird, Birdhouse } from "lucide-react-native";
 import React, { useEffect, useMemo } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -11,10 +11,6 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 
-const { width, height } = Dimensions.get("window");
-
-const BIRD_COUNT = 7;
-const BIRDHOUSE_COUNT = 2;
 const BIRD_SIZE = 32;
 const BIRDHOUSE_SIZE = 48;
 
@@ -131,21 +127,52 @@ function AnimatedBird({
 }
 
 export default function Birds() {
+    const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
+
+    // 3 birdhouses in landscape, 2 in portrait
+    const BIRDHOUSE_COUNT = isLandscape ? 3 : 2;
+    // More birds in landscape since we have more space
+    const BIRD_COUNT = isLandscape ? 10 : 7;
+
     const birdhouses = useMemo<BirdhouseConfig[]>(() => {
         const margin = 60;
-        return [
-            {
-                id: "birdhouse-0",
-                x: margin + BIRDHOUSE_SIZE,
-                y: height / 2,
-            },
-            {
-                id: "birdhouse-1",
-                x: width - margin - BIRDHOUSE_SIZE,
-                y: height / 2,
-            },
-        ];
-    }, []);
+
+        if (BIRDHOUSE_COUNT === 3) {
+            // Landscape: 3 birdhouses evenly spaced
+            return [
+                {
+                    id: "birdhouse-0",
+                    x: margin + BIRDHOUSE_SIZE,
+                    y: height / 2,
+                },
+                {
+                    id: "birdhouse-1",
+                    x: width / 2,
+                    y: height / 2,
+                },
+                {
+                    id: "birdhouse-2",
+                    x: width - margin - BIRDHOUSE_SIZE,
+                    y: height / 2,
+                },
+            ];
+        } else {
+            // Portrait: 2 birdhouses on left and right
+            return [
+                {
+                    id: "birdhouse-0",
+                    x: margin + BIRDHOUSE_SIZE,
+                    y: height / 2,
+                },
+                {
+                    id: "birdhouse-1",
+                    x: width - margin - BIRDHOUSE_SIZE,
+                    y: height / 2,
+                },
+            ];
+        }
+    }, [width, height, BIRDHOUSE_COUNT]);
 
     const birds = useMemo<BirdConfig[]>(() => {
         const colors: BirdColor[] = ["red", "blue", "yellow"];
@@ -208,7 +235,7 @@ export default function Birds() {
         }
 
         return birdsArray;
-    }, [birdhouses]);
+    }, [birdhouses, width, height, BIRD_COUNT, BIRDHOUSE_COUNT]);
 
     return (
         <View style={styles.container}>

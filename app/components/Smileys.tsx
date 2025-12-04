@@ -1,6 +1,6 @@
 import { Laugh, Smile } from "lucide-react-native";
-import React, { useEffect } from "react";
-import { Dimensions } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { useWindowDimensions } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -8,28 +8,38 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-const { width, height } = Dimensions.get("window");
+
 export default function Smileys({
   countPerType = 6,
 }: {
   countPerType?: number;
 }) {
-  const icons = Array.from({ length: countPerType * 2 }).map((_, index) => {
-    const isLaugh = index < countPerType;
-    const baseY = 40 + Math.random() * (height - 160);
-    const bounceAmplitude = 10 + Math.random() * 30;
-    return {
-      type: isLaugh ? "laugh" : "smile",
-      x: useSharedValue(-80),
-      y: useSharedValue(baseY - bounceAmplitude),
-      baseY,
-      bounceAmplitude,
-      delay: Math.random() * 3000,
-      durationX: 3000 + Math.random() * 2000,
-      bounceDuration: 600 + Math.random() * 800,
-    };
-  });
+  const { width, height } = useWindowDimensions();
+
+  const icons = useRef(
+    Array.from({ length: countPerType * 2 }).map((_, index) => {
+      const isLaugh = index < countPerType;
+      return {
+        type: isLaugh ? "laugh" : "smile",
+        x: useSharedValue(-80),
+        y: useSharedValue(0),
+        baseY: useSharedValue(0), // Changed to shared value
+        bounceAmplitude: 10 + Math.random() * 30,
+        delay: Math.random() * 3000,
+        durationX: 3000 + Math.random() * 2000,
+        bounceDuration: 600 + Math.random() * 800,
+      };
+    }),
+  ).current;
+
   useEffect(() => {
+    // Update positions based on current dimensions
+    icons.forEach((icon) => {
+      const baseY = 40 + Math.random() * (height - 160);
+      icon.baseY.value = baseY; // Now accessing .value
+      icon.y.value = baseY - icon.bounceAmplitude;
+    });
+
     icons.forEach((icon) => {
       setTimeout(() => {
         icon.x.value = withRepeat(
@@ -41,7 +51,7 @@ export default function Smileys({
           false
         );
         icon.y.value = withRepeat(
-          withTiming(icon.baseY + icon.bounceAmplitude, {
+          withTiming(icon.baseY.value + icon.bounceAmplitude, { // Now accessing .value
             duration: icon.bounceDuration,
             easing: Easing.inOut(Easing.quad),
           }),
@@ -50,7 +60,7 @@ export default function Smileys({
         );
       }, icon.delay);
     });
-  }, []);
+  }, [width, height, icons]);
   return (
     <>
       {icons.map((icon, i) => {
